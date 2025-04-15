@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/db:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    networks:
+      - codecollab-network
+
+  code-exec-python:
+    build:
+      context: ./python
+    container_name: code-exec-python
+    networks:
+      - codecollab-network
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+          cpus: '0.5'
+
+  code-exec-node:
+    build:
+      context: ./nodejs
+    container_name: code-exec-node
+    networks:
+      - codecollab-network
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+          cpus: '0.5'
+
+networks:
+  codecollab-network:
+    driver: bridge

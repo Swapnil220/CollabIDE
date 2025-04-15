@@ -1,0 +1,19 @@
+{
+    "name": "code-collab-platform",
+    "version": "1.0.0",
+    "description": "Real-time code collaboration platform",
+    "scripts": {
+      "start": "cd server && npm start",
+      "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
+      "build": "cd client && npm run build",
+      "test": "cd server && npm test",
+      "docker:build": "cd docker && docker-compose build",
+      "docker:up": "cd docker && docker-compose up -d"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+      "concurrently": "^8.2.1"
+    }
+  }
