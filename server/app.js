@@ -125,7 +125,8 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
-    process.env.CLIENT_URL
+    process.env.CLIENT_URL,
+    process.env.CLIENT_RENDER_URL
   ],
   credentials: true  // Allow credentials (cookies, auth headers, etc.)
 }));
@@ -151,7 +152,8 @@ const io = new Server(httpServer, {
     origin: [
       'http://localhost:5173',
       'http://127.0.0.1:5173',
-      process.env.CLIENT_URL
+      process.env.CLIENT_URL,
+      process.env.CLIENT_RENDER_URL
     ],
     methods: ["GET", "POST"],
     credentials: true  // Allow credentials for WebSocket connections as well
