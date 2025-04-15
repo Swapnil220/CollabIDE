@@ -124,7 +124,8 @@ dotenv.config();
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'http://127.0.0.1:5173',  // Allow both localhost and 127.0.0.1
+    'http://127.0.0.1:5173',
+    process.env.CLIENT_URL
   ],
   credentials: true  // Allow credentials (cookies, auth headers, etc.)
 }));
@@ -149,7 +150,8 @@ const io = new Server(httpServer, {
   cors: {
     origin: [
       'http://localhost:5173',
-      'http://127.0.0.1:5173',  // Allow both localhost and 127.0.0.1
+      'http://127.0.0.1:5173',
+      process.env.CLIENT_URL
     ],
     methods: ["GET", "POST"],
     credentials: true  // Allow credentials for WebSocket connections as well
