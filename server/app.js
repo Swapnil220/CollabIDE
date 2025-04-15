@@ -3,18 +3,18 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import dotenv from 'dotenv';
-
 import userRoutes from './routes/userRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
 import { initializeSocket } from './services/socketService.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
+import dotenv from 'dotenv';
 
+// Load environment variables
 dotenv.config();
 
 const app = express();
 
-// --- CORS Setup ---
+// Allowed origins (update with your actual frontend domain)
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -22,34 +22,47 @@ const allowedOrigins = [
   process.env.CLIENT_RENDER_URL
 ];
 
-app.use(cors({
-  origin: allowedOrigins,
+// CORS Options
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like Postman, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
-}));
+};
 
-// Handle preflight OPTIONS requests
-app.options('*', cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
+// Apply CORS
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Preflight request handler
 
-// --- Middleware ---
+// Log incoming request origin (debug only)
+app.use((req, res, next) => {
+  console.log('Incoming request origin:', req.headers.origin);
+  next();
+});
+
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// --- MongoDB Connection ---
+// Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB Connected'))
-  .catch(err => console.error('❌ MongoDB Connection Error:', err));
+  .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
-// --- Routes ---
+// Routes
 app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
 
-// --- Error Handling Middleware ---
+// Error middleware
 app.use(errorHandler);
 
-// --- Socket.io Setup ---
+// HTTP & Socket.io Server Setup
 const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
@@ -60,8 +73,7 @@ const io = new Server(httpServer, {
   }
 });
 
-// --- Initialize WebSockets ---
+// Initialize WebSocket
 initializeSocket(io);
 
-// --- Export server for Render ---
 export { httpServer, io };
