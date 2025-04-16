@@ -1,0 +1,9 @@
+{
+    "name": "code-exec-node",
+    "version": "1.0.0",
+    "main": "execution_server.js",
+    "dependencies": {
+      "express": "^4.18.2"
+    }
+  }
+  
