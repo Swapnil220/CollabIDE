@@ -1,6 +1,6 @@
 FROM node:16
 
-WORKDIR /nodejs
+WORKDIR .
 
 COPY package*.json ./
 RUN npm install
