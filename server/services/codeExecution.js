@@ -103,37 +103,25 @@
 // };
 
 
+// backend/services/codeExecution.js
+
 import axios from 'axios';
 
-/**
- * Mapping of languages to their respective execution service URLs
- */
 const services = {
   javascript: {
-    url: 'https://collabide-1.onrender.com:5002/execute',
+    url: 'https://collabide-1.onrender.com/execute', // ✅ your working Render URL
   },
-  python: {
-    url: 'http://code-exec-python:5001/execute',
-  },
-  // Java and C++ can be added here later
+  // Add others like Python when ready
 };
 
-/**
- * Executes code by forwarding it to the appropriate microservice
- * @param {string} language - The programming language (e.g., "javascript", "python")
- * @param {string} code - The code to execute
- * @returns {string} - Output of the execution
- */
 export const executeCode = async (language, code) => {
   const service = services[language];
-
   if (!service) {
     throw new Error(`Unsupported language: ${language}`);
   }
 
   try {
     const response = await axios.post(service.url, { code }, { timeout: 7000 });
-
     if (response.data.success) {
       return response.data.output;
     } else {
@@ -147,3 +135,4 @@ export const executeCode = async (language, code) => {
     }
   }
 };
+
