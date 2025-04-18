@@ -17,6 +17,7 @@ export const initializeSocket = (io) => {
       // Handle code changes
       socket.on('code-change', ({ projectId, code }) => {
         // Broadcast to all other clients in the same project room
+        console.log(`Code change received for project ${projectId} from ${socket.id}`);
         socket.to(projectId).emit('code-update', code);
       });
   

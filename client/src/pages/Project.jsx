@@ -36,7 +36,10 @@ const Project = () => {
     if (!socket) return;
 
     // Listen for code updates from other clients
+    socket.emit('join-project', projectId);
+
     socket.on('code-update', (newCode) => {
+      console.log('[Socket] code-update received:', newCode);
       if (newCode !== code) {
         setCode(newCode);
       }
@@ -44,6 +47,7 @@ const Project = () => {
 
     return () => {
       socket.off('code-update');
+      socket.emit('leave-project', projectId);
     };
   }, [socket, code]);
 
@@ -51,6 +55,7 @@ const Project = () => {
     setCode(newCode);
     // Send code update to other clients
     if (socket) {
+      console.log('[Socket] Sending code-change:', newCode);
       socket.emit('code-change', { projectId: id, code: newCode });
     }
   };
