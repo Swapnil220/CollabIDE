@@ -49,10 +49,16 @@ const Project = () => {
       setOutput(outputFromOther);
     });
 
+    socket.on('user-cursor', ({ userId, position }) => {
+      console.log(`Cursor from ${userId}:`, position);
+      // In the future: render a cursor marker
+    });
+
     return () => {
       socket.off('code-update');
       socket.emit('leave-project', id);
       socket.off('code-output');
+      socket.off('user-cursor');
     };
   }, [socket, code]);
 
@@ -128,19 +134,30 @@ const Project = () => {
               </button>
             </div>
             <div className="h-96">
-              <Editor
-                height="100%"
-                language={project.language}
-                theme="vs-light"
-                value={code}
-                onChange={handleCodeChange}
-                options={{
-                  minimap: { enabled: false },
-                  fontSize: 14,
-                  wordWrap: 'on',
-                  automaticLayout: true
-                }}
-              />
+            <Editor
+              height="100%"
+              language={project.language}
+              theme="vs-light"
+              value={code}
+              onChange={handleCodeChange}
+              onMount={(editor, monaco) => {
+                editor.onDidChangeCursorPosition(() => {
+                  const position = editor.getPosition();
+                  if (socket) {
+                    socket.emit('cursor-position', {
+                      projectId: id,
+                      position,
+                    });
+                  }
+                });
+              }}
+              options={{
+                minimap: { enabled: false },
+                fontSize: 14,
+                wordWrap: 'on',
+                automaticLayout: true,
+              }}
+            />
             </div>
           </div>
         </div>
