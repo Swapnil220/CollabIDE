@@ -45,9 +45,14 @@ const Project = () => {
       }
     });
 
+    socket.on('code-output', (outputFromOther) => {
+      setOutput(outputFromOther);
+    });
+
     return () => {
       socket.off('code-update');
       socket.emit('leave-project', id);
+      socket.off('code-output');
     };
   }, [socket, code]);
 
@@ -69,6 +74,11 @@ const Project = () => {
     try {
       const result = await executeCodeApi(id, { code, language: project.language });
       console.log(result,"resulttttttttt")
+
+      if (socket) {
+        socket.emit('code-output', { projectId: id, output: result });
+      }
+      
       setOutput(result);
     } catch (error) {
       setOutput(error.response?.data?.error || 'Execution failed');

@@ -33,5 +33,12 @@ export const initializeSocket = (io) => {
       socket.on('disconnect', () => {
         console.log(`User disconnected: ${socket.id}`);
       });
+
+
+      // Handle output broadcasting
+      socket.on('code-output', ({ projectId, output }) => {
+        socket.to(projectId).emit('code-output', output);
+      });
+
     });
   };
