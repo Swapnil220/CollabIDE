@@ -18,6 +18,7 @@ const Project = () => {
   const socket = useSocket(id);
   const editorRef = useRef(null);
   const decorationsRef = useRef({});
+  const monacoRef = useRef(null);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -49,22 +50,18 @@ const Project = () => {
     });
   
     socket.on('user-cursor', ({ userId, position }) => {
-      if (!editorRef.current) return;
-  
       const editor = editorRef.current;
+      const monaco = monacoRef.current;
+      if (!editor || !monaco || userId === socket.id) return;
+    
       const decoration = {
-        range: new window.monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column),
+        range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column),
         options: {
           className: 'remote-cursor',
-          isWholeLine: false,
-          glyphMarginClassName: 'remote-cursor-glyph',
-          overviewRuler: {
-            color: 'rgba(0, 122, 204, 0.5)',
-            position: window.monaco.editor.OverviewRulerLane.Right,
-          },
-        },
+          stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+        }
       };
-  
+    
       if (decorationsRef.current[userId]) {
         decorationsRef.current[userId] = editor.deltaDecorations(decorationsRef.current[userId], [decoration]);
       } else {
@@ -160,6 +157,7 @@ const Project = () => {
               onChange={handleCodeChange}
               onMount={(editor, monaco) => {
                 editorRef.current = editor;
+                monacoRef.current = monaco; // 👈 ADD THIS
                 editor.onDidChangeCursorPosition(() => {
                   const position = editor.getPosition();
                   if (socket) {
