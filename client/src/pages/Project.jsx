@@ -5,6 +5,7 @@ import { useSocket } from '../hooks/useSocket';
 import { getProject, executeCode as executeCodeApi } from '../services/projectService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
+import { useRef } from 'react';
 
 const Project = () => {
   const { id } = useParams();
@@ -15,6 +16,8 @@ const Project = () => {
   const [executing, setExecuting] = useState(false);
   const { user } = useAuth();
   const socket = useSocket(id);
+  const editorRef = useRef(null);
+  const decorationsRef = useRef({});
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -33,32 +36,47 @@ const Project = () => {
   }, [id]);
 
   useEffect(() => {
-    if (!socket) return;
-
-    // Listen for code updates from other clients
+    if (!socket || !editorRef.current) return;
+  
     socket.emit('join-project', id);
-
+  
     socket.on('code-update', (newCode) => {
-      console.log('[Socket] code-update received:', newCode);
-      if (newCode !== code) {
-        setCode(newCode);
-      }
+      if (newCode !== code) setCode(newCode);
     });
-
+  
     socket.on('code-output', (outputFromOther) => {
       setOutput(outputFromOther);
     });
-
+  
     socket.on('user-cursor', ({ userId, position }) => {
-      console.log(`Cursor from ${userId}:`, position);
-      // In the future: render a cursor marker
+      if (!editorRef.current) return;
+  
+      const editor = editorRef.current;
+      const decoration = {
+        range: new window.monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column),
+        options: {
+          className: 'remote-cursor',
+          isWholeLine: false,
+          glyphMarginClassName: 'remote-cursor-glyph',
+          overviewRuler: {
+            color: 'rgba(0, 122, 204, 0.5)',
+            position: window.monaco.editor.OverviewRulerLane.Right,
+          },
+        },
+      };
+  
+      if (decorationsRef.current[userId]) {
+        decorationsRef.current[userId] = editor.deltaDecorations(decorationsRef.current[userId], [decoration]);
+      } else {
+        decorationsRef.current[userId] = editor.deltaDecorations([], [decoration]);
+      }
     });
-
+  
     return () => {
       socket.off('code-update');
-      socket.emit('leave-project', id);
       socket.off('code-output');
       socket.off('user-cursor');
+      socket.emit('leave-project', id);
     };
   }, [socket, code]);
 
@@ -141,6 +159,7 @@ const Project = () => {
               value={code}
               onChange={handleCodeChange}
               onMount={(editor, monaco) => {
+                editorRef.current = editor;
                 editor.onDidChangeCursorPosition(() => {
                   const position = editor.getPosition();
                   if (socket) {

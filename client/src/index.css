@@ -44,3 +44,13 @@ body {
 .Toastify__toast--error {
   background-color: #ef4444;
 }
+
+.remote-cursor {
+  position: absolute;
+  width: 2px;
+  background-color: red;
+}
+
+.remote-cursor-glyph {
+  background-color: red;
+}
